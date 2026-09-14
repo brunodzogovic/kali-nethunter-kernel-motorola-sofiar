@@ -1,0 +1,4 @@
+b958d3cc99898f44d33a67e53b0a7c8d3c1ff2070db1143b95522ec622f72545  out/stock-clean/arch/arm64/boot/Image
+feaac1f298efa9e76172cc72570d0906d78e17a91e7faf4d2e7095bdc0179bec  out/stock-clean/arch/arm64/boot/Image.gz
+10c0ba3667753077e7107604c375588201c0b9966d3f9e29139ef3494fd3adb4  out/stock-clean/arch/arm64/boot/dts/qcom/trinket-sofiar-base.dtb
+c604cd8f4739bae92393406a10d6e179cbeb96153eea91d9c4e8b9fb51464b20  out/boot-b-selfbuilt-kernel.img
