@@ -1,4 +1,6 @@
-=== Android ===
+=== Device ===
+moto g(8) power
+sofiar
 RPES31.Q4U-47-35-9
 
 === uname ===
