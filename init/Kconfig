@@ -1910,6 +1910,27 @@ config MOTO_VENDOR_MODVERSION_COMPAT
 	  Other modules continue to receive normal modversion validation.
 	  Say N unless building for a supported Motorola stock vendor image.
 
+config MOTO_VINTF_SYSVIPC_COMPAT
+	bool "Motorola Android VINTF compatibility view for SYSVIPC"
+	depends on SYSVIPC && IKCONFIG_PROC
+	default n
+	help
+	  Keep System V IPC enabled in the running kernel for NetHunter while
+	  omitting CONFIG_SYSVIPC=y from the /proc/config.gz compatibility
+	  view consumed by Android libvintf.
+
+	  The stock Android framework compatibility matrices for sofiar require
+	  CONFIG_SYSVIPC=n. Android libvintf treats an absent tristate option as
+	  n, so this avoids the generic "internal problem with your device"
+	  warning without disabling the actual SYSVIPC implementation.
+
+	  The build output .config remains the authoritative real kernel
+	  configuration. /proc/config.gz is intentionally a VINTF compatibility
+	  view when this option is enabled.
+
+	  Say N unless building a NetHunter kernel for a Motorola stock Android
+	  image with this specific VINTF conflict.
+
 config MODULE_REL_CRCS
 	bool
 	depends on MODVERSIONS
