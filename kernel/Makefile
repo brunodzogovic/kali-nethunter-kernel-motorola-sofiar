@@ -119,9 +119,22 @@ obj-$(CONFIG_HAS_IOMEM) += memremap.o
 
 $(obj)/configs.o: $(obj)/config_data.h
 
+# Android libvintf reads /proc/config.gz when checking the framework
+# compatibility matrix.  Some stock Motorola Android 11 matrices require
+# CONFIG_SYSVIPC=n, while full NetHunter needs SYSVIPC enabled.  When the
+# explicit compatibility option is set, keep the real build .config untouched
+# and only omit CONFIG_SYSVIPC=y from the embedded IKCONFIG view.
+quiet_cmd_gzip_vintf = GZIPVINTF $@
+cmd_gzip_vintf = ({ printf '%s\n' '# NetHunter VINTF compatibility view: CONFIG_SYSVIPC is enabled in the running kernel'; grep -v '^CONFIG_SYSVIPC=y$' $(KCONFIG_CONFIG); } | gzip -n -f -9 > $@) || (rm -f $@ ; false)
+
 targets += config_data.gz
+ifeq ($(CONFIG_MOTO_VINTF_SYSVIPC_COMPAT),y)
+$(obj)/config_data.gz: $(KCONFIG_CONFIG) FORCE
+	$(call if_changed,gzip_vintf)
+else
 $(obj)/config_data.gz: $(KCONFIG_CONFIG) FORCE
 	$(call if_changed,gzip)
+endif
 
       filechk_ikconfiggz = (echo "static const char kernel_config_data[] __used = MAGIC_START"; cat $< | scripts/basic/bin2c; echo "MAGIC_END;")
 targets += config_data.h
