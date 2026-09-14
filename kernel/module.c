@@ -1273,6 +1273,73 @@ static int try_to_force_load(struct module *mod, const char *reason)
 
 #ifdef CONFIG_MODVERSIONS
 
+static bool moto_vendor_modversion_compat(const char *name)
+{
+#ifdef CONFIG_MOTO_VENDOR_MODVERSION_COMPAT
+	static const char * const allowlist[] = {
+		"abov_sar_a96t",
+		"adsp_loader_dlkm",
+		"apr_dlkm",
+		"aw8624",
+		"bolero_cdc_dlkm",
+		"cpe_lsm_dlkm",
+		"exfat",
+		"focaltech_0flash_mmi",
+		"fpc1020_mmi",
+		"hdmi_dlkm",
+		"machine_dlkm",
+		"mbhc_dlkm",
+		"mmi_annotate",
+		"mmi_info",
+		"mmi_sys_temp",
+		"moto_f_usbnet",
+		"native_dlkm",
+		"nova_0flash_mmi",
+		"pinctrl_wcd_dlkm",
+		"platform_dlkm",
+		"q6_dlkm",
+		"q6_notifier_dlkm",
+		"q6_pdr_dlkm",
+		"qpnp_power_on_mmi",
+		"qpnp_smbcharger_mmi",
+		"rx_macro_dlkm",
+		"sensors_class",
+		"snd_event_dlkm",
+		"stub_dlkm",
+		"swr_ctrl_dlkm",
+		"swr_dlkm",
+		"tas2562",
+		"tx_macro_dlkm",
+		"tzlog_dump",
+		"usf_dlkm",
+		"utags",
+		"va_macro_dlkm",
+		"watchdog_cpu_ctx",
+		"watchdogtest",
+		"wcd9335_dlkm",
+		"wcd934x_dlkm",
+		"wcd937x_dlkm",
+		"wcd937x_slave_dlkm",
+		"wcd9xxx_dlkm",
+		"wcd_core_dlkm",
+		"wcd_cpe_dlkm",
+		"wcd_spi_dlkm",
+		"wglink_dlkm",
+		"wlan",
+		"wsa881x_dlkm",
+		"wsa_macro_dlkm",
+	};
+	unsigned int i;
+
+	for (i = 0; i < ARRAY_SIZE(allowlist); i++) {
+		if (!strcmp(name, allowlist[i]))
+			return true;
+	}
+#endif
+
+	return false;
+}
+
 static u32 resolve_rel_crc(const s32 *crc)
 {
 	return *(u32 *)((void *)crc + *crc);
@@ -1314,6 +1381,25 @@ static int check_version(const struct load_info *info,
 			return 1;
 		pr_debug("Found checksum %X vs module %lX\n",
 			 crcval, versions[i].crc);
+
+		/*
+		 * Full NetHunter features such as SYSVIPC can change genksyms
+		 * CRCs across the kernel even when the interfaces used by the
+		 * stock Motorola vendor modules remain usable.  Keep normal
+		 * MODVERSIONS enforcement for every other module and bypass
+		 * only the explicit sofiar vendor-module allowlist above.
+		 */
+		if (moto_vendor_modversion_compat(info->name)) {
+			if (!strcmp(symname, VMLINUX_SYMBOL_STR(module_layout))) {
+				add_taint_module(mod, TAINT_FORCED_MODULE,
+						 LOCKDEP_NOW_UNRELIABLE);
+				pr_warn("%s: allowing stock Motorola vendor module "
+					"with modversion ABI mismatch\n",
+					info->name);
+			}
+			return 1;
+		}
+
 		goto bad_version;
 	}
 
