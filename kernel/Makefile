@@ -124,8 +124,12 @@ $(obj)/configs.o: $(obj)/config_data.h
 # CONFIG_SYSVIPC=n, while full NetHunter needs SYSVIPC enabled.  When the
 # explicit compatibility option is set, keep the real build .config untouched
 # and only omit CONFIG_SYSVIPC=y from the embedded IKCONFIG view.
+#
+# Keep the filtering logic in a standalone POSIX-shell helper rather than in
+# this make variable.  This avoids shell-parser differences in Kbuild command
+# expansion and makes the compatibility view easy to inspect independently.
 quiet_cmd_gzip_vintf = GZIPVINTF $@
-cmd_gzip_vintf = ({ printf '%s\n' '# NetHunter VINTF compatibility view: CONFIG_SYSVIPC is enabled in the running kernel'; grep -v '^CONFIG_SYSVIPC=y$' $(KCONFIG_CONFIG); } | gzip -n -f -9 > $@) || (rm -f $@ ; false)
+cmd_gzip_vintf = ($(CONFIG_SHELL) $(srctree)/scripts/moto-vintf-config-filter.sh $(KCONFIG_CONFIG) | gzip -n -f -9 > $@) || (rm -f $@ ; false)
 
 targets += config_data.gz
 ifeq ($(CONFIG_MOTO_VINTF_SYSVIPC_COMPAT),y)
