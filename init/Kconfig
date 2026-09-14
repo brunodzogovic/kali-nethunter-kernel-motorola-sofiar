@@ -1894,6 +1894,22 @@ config MODVERSIONS
 	  make them incompatible with the kernel you are running.  If
 	  unsure, say N.
 
+config MOTO_VENDOR_MODVERSION_COMPAT
+	bool "Motorola stock vendor module ABI compatibility"
+	depends on MODVERSIONS
+	default n
+	help
+	  Allow only the explicitly listed Motorola stock vendor modules
+	  in kernel/module.c to load when their CONFIG_MODVERSIONS CRCs
+	  differ from this kernel.
+
+	  This is intended for devices such as sofiar that depend on
+	  prebuilt Motorola/Qualcomm vendor modules while using a locally
+	  rebuilt kernel with additional NetHunter features.
+
+	  Other modules continue to receive normal modversion validation.
+	  Say N unless building for a supported Motorola stock vendor image.
+
 config MODULE_REL_CRCS
 	bool
 	depends on MODVERSIONS
