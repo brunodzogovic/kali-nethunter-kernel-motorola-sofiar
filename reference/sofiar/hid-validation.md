@@ -51,3 +51,36 @@ The phone must still retain:
 - stock Motorola vendor modules
 
 Any regression in the stock phone functions blocks promotion of this stage.
+
+
+## Hardware validation
+
+Validated on physical Moto G8 Power (sofiar) hardware with the NetHunter
+development kernel.
+
+Observed Android-visible kernel configuration:
+
+```text
+CONFIG_USB_DWC3_DUAL_ROLE=y
+CONFIG_USB_F_HID=y
+CONFIG_USB_CONFIGFS=y
+CONFIG_USB_CONFIGFS_F_HID=y
+```
+
+The DWC3 UDC is exposed as:
+
+```text
+/sys/class/udc/4e00000.dwc3
+```
+
+The phone remained normally responsive during validation. Touch, vibration,
+fingerprint, internal Wi-Fi and Bluetooth were operational, and Wi-Fi remained
+connected to an access point. Cellular/SIM functionality was not tested because
+no SIM was installed.
+
+Status: kernel-side USB HID gadget prerequisites validated on hardware.
+
+Bluetooth being operational is useful for later BLE/IoT security-validation
+work, but USB HID gadget support does not by itself imply Bluetooth HID-device
+mode. Bluetooth HID must be validated separately at the Android/userspace
+profile level.
