@@ -113,3 +113,23 @@ otherwise-unbound `g2` object for the temporary NetHunter HID composition.
 Before implementing the switch, inspect the stock system/vendor init rules for
 all references to `g2`, `hid`, `UDC`, `sys.usb.config`, and `ffs.adb`.
 Do not assume that `g2` is unused until those rules have been checked.
+
+
+## Motorola g2 gadget assessment
+
+Inspection of the stock Android and Motorola USB init rules shows that `g1`
+is the normal property-driven Android gadget. The stock init logic creates both
+`g1` and `g2`, including language/config directories for each, but all normal
+USB compositions bind functions and the UDC through `g1`.
+
+Across the inspected init rules, `g2` is not assigned the UDC and is not used
+for the normal ADB/MTP/PTP/accessory/audio/MIDI/RNDIS/diagnostic compositions.
+The only observed runtime references after creation are cleanup attempts that
+remove `/config/usb_gadget/g2/functions/gsi.rndis` in two Qualcomm RNDIS
+composition paths.
+
+This makes `g2` a strong candidate for a temporary NetHunter HID gadget, with
+one caveat: NetHunter must avoid colliding with those Qualcomm RNDIS paths.
+The intended first implementation is therefore a temporary HID-only g2 mode,
+entered from the normal ADB-only baseline and restored back to Android's g1
+state after the test.
