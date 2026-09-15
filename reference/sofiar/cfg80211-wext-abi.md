@@ -34,3 +34,30 @@ drivers without changing the stock cfg80211 public layouts through WEXT.
 
 The failing source state is preserved on branch
 `experiment-v6-cfg80211-wext-broken`.
+
+
+## v6b validation
+
+The corrected v6b build keeps `CONFIG_CFG80211_WEXT=n` while enabling:
+
+- `CONFIG_MAC80211=y`
+- `CONFIG_MAC80211_MESH=y`
+
+Runtime validation on the real sofiar device confirmed:
+
+- Magisk root remains functional.
+- The stock Motorola `wlan` module loads.
+- `wlan0` is present and reaches UP/LOWER_UP.
+- `p2p0` is present.
+- The Android-facing kernel config correctly reports
+  `# CONFIG_CFG80211_WEXT is not set`.
+- mac80211 and Minstrel rate control are active.
+- The device remains on the validated 4.14.180-perf+ kernel baseline.
+
+This confirms that MAC80211 itself is compatible with the stock Motorola WLAN
+stack on sofiar. The prior regression was specifically caused by enabling
+CFG80211_WEXT, which changes cfg80211 public structure layout and is therefore
+not safe with Motorola's prebuilt qca_cld3 WLAN module.
+
+The validated source state is preserved on branch
+`milestone-v6b-mac80211`.
