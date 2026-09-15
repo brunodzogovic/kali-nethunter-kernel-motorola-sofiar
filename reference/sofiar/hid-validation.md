@@ -84,3 +84,32 @@ Bluetooth being operational is useful for later BLE/IoT security-validation
 work, but USB HID gadget support does not by itself imply Bluetooth HID-device
 mode. Bluetooth HID must be validated separately at the Android/userspace
 profile level.
+
+
+## Android USB ownership discovered on hardware
+
+Runtime tracing shows that stock Android owns the live USB gadget lifecycle.
+The active controller is `4e00000.dwc3`, ConfigFS is enabled, and Android keeps
+`sys.usb.config=adb` / `sys.usb.state=adb` during the validated baseline.
+
+The userspace USB HAL is `android.hardware.usb@1.0-service`. Android init imports
+`/system/etc/init/hw/init.usb.configfs.rc`, while Motorola adds
+`/vendor/etc/init/hw/init.mmi.usb.rc`.
+
+Boot-time dmesg confirms property-driven gadget transitions:
+
+- `sys.usb.config=none && sys.usb.configfs=1` unbinds and tears down the active
+  g1 function links.
+- `sys.usb.config=adb && sys.usb.configfs=1` rebuilds the Android ADB
+  composition.
+- once `sys.usb.ffs.ready=1`, the gadget is bound to `4e00000.dwc3` and the
+  host enumerates configuration `b`.
+
+This means NetHunter HID integration should not fight the live Android `g1`
+object directly. The preferred design is to cooperate with the Android USB
+state machine and, if possible after confirming Motorola's init rules, use the
+otherwise-unbound `g2` object for the temporary NetHunter HID composition.
+
+Before implementing the switch, inspect the stock system/vendor init rules for
+all references to `g2`, `hid`, `UDC`, `sys.usb.config`, and `ffs.adb`.
+Do not assume that `g2` is unused until those rules have been checked.
