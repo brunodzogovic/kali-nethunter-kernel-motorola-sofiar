@@ -176,3 +176,29 @@ a root-owned writer such as `tee` succeeds. Both `protocol=1` and
 For subsequent HID setup commands, prefer `tee` or `dd` for ConfigFS
 attribute writes instead of shell `>` redirection. No kernel-side ConfigFS or
 HID compatibility patch is required for this issue.
+
+
+## g2 boot-keyboard composition prepared on hardware
+
+The spare `g2` gadget has now been configured successfully as an unbound HID
+boot-keyboard composition on real hardware. The function instance
+`hid.crx0` has:
+
+- protocol = 1
+- subclass = 1
+- report_length = 8
+- a 63-byte standard keyboard report descriptor
+
+The gadget identity is temporarily set to Motorola VID `0x22b8` with lab PID
+`0xffff`, manufacturer `CirreniX`, product `CirreniX HID Test`, and serial
+`CRXHID001`. The HID function is linked into `g2/configs/b.1` while `g2`
+remains unbound, so Android ADB on `g1` is unaffected.
+
+Note: ConfigFS attribute files report a nominal size of 4096 bytes. A userspace
+`wc -c` implementation may therefore report 4096 even though the HID report
+descriptor written was 63 bytes. Validate descriptor content by streaming the
+attribute and hashing/comparing the bytes rather than relying on the inode size.
+
+The next stage is temporary host-side HID enumeration only, with a detached
+on-device restore script that releases Android `g1`, binds `g2` to
+`4e00000.dwc3`, waits briefly, unbinds `g2`, and restores `sys.usb.config=adb`.
