@@ -163,3 +163,16 @@ standard boot-keyboard report descriptor on unbound `g2`, link it into
 `g2/configs/b.1`, temporarily release Android's `g1`, bind `g2` to
 `4e00000.dwc3`, confirm host-side USB HID enumeration, then automatically
 restore Android ADB mode. No keystroke injection is required for this stage.
+
+
+## ConfigFS HID attribute writes validated
+
+The HID function attributes are writable from Magisk root while SELinux is
+temporarily permissive. Direct shell redirection through the tested Android
+shell/Magisk invocation produced misleading permission errors, but writing with
+a root-owned writer such as `tee` succeeds. Both `protocol=1` and
+`report_length=8` were written and read back successfully.
+
+For subsequent HID setup commands, prefer `tee` or `dd` for ConfigFS
+attribute writes instead of shell `>` redirection. No kernel-side ConfigFS or
+HID compatibility patch is required for this issue.
