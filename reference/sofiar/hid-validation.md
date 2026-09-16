@@ -133,3 +133,33 @@ one caveat: NetHunter must avoid colliding with those Qualcomm RNDIS paths.
 The intended first implementation is therefore a temporary HID-only g2 mode,
 entered from the normal ADB-only baseline and restored back to Android's g1
 state after the test.
+
+
+## HID ConfigFS function instantiated on hardware
+
+With Magisk root in the global mount namespace and SELinux temporarily set to
+permissive, the spare `g2` gadget successfully instantiated a HID function:
+
+```text
+/config/usb_gadget/g2/functions/hid.crx0
+```
+
+The function exposed the expected attributes:
+
+```text
+dev
+protocol
+report_desc
+report_length
+subclass
+```
+
+The initial values of `protocol`, `subclass`, and `report_length` were all
+zero, as expected for a newly created generic HID function. This validates the
+kernel-side ConfigFS HID function path on the running device.
+
+The next validation stage is non-destructive enumeration only: configure a
+standard boot-keyboard report descriptor on unbound `g2`, link it into
+`g2/configs/b.1`, temporarily release Android's `g1`, bind `g2` to
+`4e00000.dwc3`, confirm host-side USB HID enumeration, then automatically
+restore Android ADB mode. No keystroke injection is required for this stage.
